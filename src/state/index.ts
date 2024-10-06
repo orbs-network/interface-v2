@@ -5,6 +5,7 @@ import { updateVersion } from './global/actions';
 import user from './user/reducer';
 import transactions from './transactions/reducer';
 import swap from './swap/reducer';
+import twap from './swap/twap/reducer';
 import mint from './mint/reducer';
 import mintV3 from './mint/v3/reducer';
 import lists from './lists/reducer';
@@ -16,7 +17,6 @@ import multicall from './multicall/reducer';
 import multicallV3 from './multicall/v3/reducer';
 import swapV3 from './swap/v3/reducer';
 import zap from './zap/reducer';
-import liquidityHub from './swap/liquidity-hub/reducer';
 import singleToken from './singleToken/reducer';
 import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux';
 import userBalance from './balance/reducer';
@@ -37,6 +37,7 @@ const store = configureStore({
     user,
     transactions,
     swap,
+    twap,
     userBalance,
     swapV3,
     mint,
@@ -49,7 +50,6 @@ const store = configureStore({
     farms,
     syrups,
     zap,
-    liquidityHub,
     singleToken,
   },
   middleware: (getDefaultMiddleware) => [

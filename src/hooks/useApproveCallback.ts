@@ -51,11 +51,13 @@ export function useApproveCallback(
   const nativeCurrency = ETHER[chainIdToUse];
   const token =
     amountToApprove instanceof TokenAmount ? amountToApprove.token : undefined;
+
   const currentAllowance = useTokenAllowance(
     token,
     account ?? undefined,
     spender,
   );
+
   const pendingApproval = useHasPendingApproval(token?.address, spender);
 
   // check the current approval status

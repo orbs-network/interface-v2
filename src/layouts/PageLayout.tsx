@@ -128,7 +128,7 @@ const PageLayout: React.FC<PageLayoutProps> = ({ children, name }) => {
 
   return (
     <Box className='page'>
-      {openPassModal && <PasswordModal />}
+      {/* {openPassModal && <PasswordModal />} */}
       {showBetaBanner && <BetaWarningBanner />}
       {displayNewsletter && <NewsletterSignupPanel />}
       <Header
