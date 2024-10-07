@@ -14,6 +14,7 @@ import { tryParseAmount } from 'state/swap/hooks';
 import CurrencyLogo from 'components/CurrencyLogo';
 import SwapVertIcon from '@material-ui/icons/SwapVert';
 import { useTranslation } from 'react-i18next';
+import { useOptimalRate } from './context';
 const useInvertedAmount = (amount?: string) => {
   const { chainId } = useActiveWeb3React();
   const { currencies } = useTwapContext();
@@ -48,7 +49,7 @@ export function LimitInputPanel() {
       <Box className='TwapLimitPanelHeader'>
         <Box className='TwapLimitPanelHeaderTitle'>
           When 1 <CurrencyLogo currency={inCurrency} size='17px' />{' '}
-          {outCurrency?.symbol} is worth
+          {inCurrency?.symbol} is worth
         </Box>
         <button
           className='TwapLimitPanelHeaderInvert'
@@ -57,14 +58,18 @@ export function LimitInputPanel() {
           <SwapVertIcon />
         </button>
       </Box>
-      <Box className='TwapLimitPanelInputContainer'>
+      <Box
+        mb={2}
+        sx={{ borderRadius: '10px', padding: '8px 16px' }}
+        className='bg-input1 TwapLimitPanelInputContainer'
+      >
+        <LimitPriceInput />
         <CurrencySelect
           id='twap-limit-currency-select'
           currency={outCurrency}
           otherCurrency={inCurrency}
           handleCurrencySelect={handleCurrencySelect}
         />
-        <LimitPriceInput />
       </Box>
       <PercentButtons />
     </Card>
@@ -73,24 +78,25 @@ export function LimitInputPanel() {
 
 const LimitPriceInput = () => {
   const isProMode = useIsProMode();
-  const { marketPrice, currencies } = useTwapContext();
-  const { typedLimitPrice, isLimitPriceInverted } = useTwapState();
+  const { currencies } = useTwapContext();
+  const marketPrice = useOptimalRate().data?.rate?.destAmount;
+  const state = useTwapState();
   const { onLimitPriceInput } = useTwapSwapActionHandlers();
   const invertedMarketPrice = useInvertedAmount(marketPrice);
 
   const value = useMemo(() => {
-    if (typedLimitPrice !== undefined) {
-      return typedLimitPrice;
+    if (state.limitPrice !== undefined) {
+      return state.limitPrice;
     }
-    if (isLimitPriceInverted) {
+    if (state.isLimitPriceInverted) {
       return invertedMarketPrice?.toExact();
     }
     return fromRawAmount(currencies.OUTPUT, marketPrice)?.toExact();
   }, [
-    typedLimitPrice,
+    state.limitPrice,
     marketPrice,
     currencies.OUTPUT,
-    isLimitPriceInverted,
+    state.isLimitPriceInverted,
     invertedMarketPrice?.toExact(),
   ]);
 
@@ -98,7 +104,7 @@ const LimitPriceInput = () => {
     <NumericalInput
       className='TwapLimitPanelInput'
       value={value || ''}
-      align='right'
+      align='left'
       color={isProMode ? 'white' : 'secondary'}
       placeholder='0.00'
       onUserInput={(val) => {
@@ -111,9 +117,11 @@ const LimitPriceInput = () => {
 function useCalculatePercentageDiff() {
   const context = useTwapContext();
   const { isLimitPriceInverted } = useTwapState();
+  const destAmount = useOptimalRate().data?.rate?.destAmount;
+
   return useMemo(() => {
-    if (!context.marketPrice || !context.limitPrice) return 0;
-    const marketPrice = Number(context.marketPrice);
+    if (!destAmount || !context.limitPrice) return 0;
+    const marketPrice = Number(destAmount);
     const limitPrice = Number(context.limitPrice);
 
     if (marketPrice === 0) return 0;
@@ -123,17 +131,14 @@ function useCalculatePercentageDiff() {
       percentageDiff = -percentageDiff;
     }
     return parseFloat(percentageDiff.toFixed(2));
-  }, [context.marketPrice, context.limitPrice, isLimitPriceInverted]);
+  }, [context.limitPrice, destAmount, isLimitPriceInverted]);
 }
 
 const PercentButtons = () => {
-  const {
-    swapData: {},
-    marketPrice,
-    currencies,
-  } = useTwapContext();
+  const { currencies } = useTwapContext();
   const { isLimitPriceInverted, limitPercent } = useTwapState();
   const { onLimitPriceInput } = useTwapSwapActionHandlers();
+  const marketPrice = useOptimalRate().data?.rate?.destAmount;
   const invertedAmount = useInvertedAmount(marketPrice);
 
   const onPercent = useCallback(
@@ -152,23 +157,25 @@ const PercentButtons = () => {
     [marketPrice, currencies, onLimitPriceInput, isLimitPriceInverted],
   );
 
+  const percent = useMemo(() => {
+    return [1, 5, 10].map((it) => it * (isLimitPriceInverted ? -1 : 1));
+  }, [isLimitPriceInverted]);
+
   return (
     <Box className='TwapLimitPanelPercent'>
       <ResetButton />
-      {isLimitPriceInverted
-        ? [-1, -5, -10]
-        : [1, 5, 10].map((percent) => {
-            return (
-              <SelectorButton
-              key={percent}
-                selected={limitPercent === percent}
-                onClick={() => onPercent(percent)}
-              >
-                {isLimitPriceInverted ? '' : '+'}
-                {percent}%
-              </SelectorButton>
-            );
-          })}
+      {percent.map((percent) => {
+        return (
+          <SelectorButton
+            key={percent}
+            selected={limitPercent === percent}
+            onClick={() => onPercent(percent)}
+          >
+            {isLimitPriceInverted ? '' : '+'}
+            {percent}%
+          </SelectorButton>
+        );
+      })}
     </Box>
   );
 };
@@ -176,16 +183,16 @@ const PercentButtons = () => {
 const ResetButton = () => {
   const { onLimitPriceInput } = useTwapSwapActionHandlers();
   const priceDiff = useCalculatePercentageDiff();
-  const { limitPercent, typedLimitPrice } = useTwapState();
+  const state = useTwapState();
   const { t } = useTranslation();
   const { isLimitPanel } = useTwapContext();
-  const showPercent = priceDiff && !limitPercent;
+  const showPercent = priceDiff && !state.limitPercent;
 
   if (!showPercent) {
     return (
       <SelectorButton
         onClick={() => onLimitPriceInput(undefined)}
-        selected={Number(priceDiff) === 0 && typedLimitPrice !== ''}
+        selected={Number(priceDiff) === 0 && state.limitPrice !== ''}
       >
         {isLimitPanel ? '0%' : t('market')}
       </SelectorButton>

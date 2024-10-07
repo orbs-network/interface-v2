@@ -57,12 +57,12 @@ export const setSwapDelay = createAction<{ swapDelay: SwapDelay }>(
   'twap/swapDelay',
 );
 
-export const setChunks = createAction<{ typedChunks: number }>(
+export const setChunks = createAction<{ chunks: number }>(
   'twap/setChunks',
 );
 
 export const setLimitPrice = createAction<{
-  typedLimitPrice?: string;
+  limitPrice?: string;
   limitPercent?: number;
 }>('twap/setLimitPrice');
 
@@ -74,11 +74,11 @@ export const setUpdatingOrders = createAction<{ updatingOrders: boolean }>(
   'twap/setUpdatingOrders',
 );
 
-export const setFillDelay = createAction<{ typedFillDelay: TimeDuration }>(
+export const setFillDelay = createAction<{ fillDelay: TimeDuration }>(
   'twap/setFillDelay',
 );
 
-export const setDuration = createAction<{ typedDuration?: TimeDuration }>(
+export const setDuration = createAction<{ duration?: TimeDuration }>(
   'twap/setDuration',
 );
 

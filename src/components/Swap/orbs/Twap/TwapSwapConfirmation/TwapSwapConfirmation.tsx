@@ -11,11 +11,11 @@ import { Steps } from 'components/Swap/orbs/types';
 import { useGetLogoCallback } from 'components/Swap/orbs/hooks';
 import { fromRawAmount } from 'components/Swap/orbs/utils';
 import { ORBS_WEBSITE, TWAP_WEBSITE } from '../../consts';
-import { useTwapContext } from '../context';
 import { SwapStep } from '@orbs-network/swap-ui';
 import useUSDCPrice from 'utils/useUSDCPrice';
 import { ConfirmationModal } from '../../ConfirmationModal';
 import { OrderDetails } from '../OrderDetails';
+import { useTwapContext } from '../context';
 
 export const useSteps = () => {
   const { currencies } = useTwapContext();
@@ -79,8 +79,13 @@ const SuccessContent = ({ txHash }: { txHash?: string }) => {
 
 const SwapDetails = () => {
   const {
-    swapData: { deadline, chunks, fillDelay, dstTokenMinAmount },
-    parsedAmount,
+    derivedSwapValues: {
+      deadline,
+      chunks,
+      fillDelay,
+      destTokenMinAmount,
+      srcChunkAmount,
+    },
     currencies,
     isMarketOrder,
   } = useTwapContext();
@@ -89,16 +94,17 @@ const SwapDetails = () => {
     <OrderDetails>
       <Price />
       <OrderDetails.Deadline deadline={deadline} />
-      <OrderDetails.ChunkSize
-        srcAmount={parsedAmount?.numerator.toString()}
-        totalChunks={chunks}
-        inCurrency={currencies.INPUT}
-      />
+      {chunks > 1 && (
+        <OrderDetails.ChunkSize
+          srcChunk={srcChunkAmount}
+          inCurrency={currencies.INPUT}
+        />
+      )}
       <OrderDetails.Chunks totalChunks={chunks} />
       <OrderDetails.FillDelay fillDelay={fillDelay.unit * fillDelay.value} />
       <OrderDetails.MinReceived
         isMarketOrder={isMarketOrder}
-        dstMinAmount={dstTokenMinAmount}
+        dstMinAmount={destTokenMinAmount}
         currency={currencies.OUTPUT}
       />
       <OrderDetails.Recipient />
@@ -160,11 +166,11 @@ const SwapButton = () => {
 const MainContent = () => {
   const { t } = useTranslation();
   const { currentStep } = useTwapConfirmationContext().state;
-  const { currencies, tradeDestAmount, parsedAmount } = useTwapContext();
+  const { currencies, derivedSwapValues, parsedAmount } = useTwapContext();
   const steps = useSteps();
   const parsedTradeDestAmount = fromRawAmount(
     currencies.OUTPUT,
-    tradeDestAmount,
+    derivedSwapValues.destTokenAmount,
   );
   const inUsd =
     Number(useUSDCPrice(currencies.INPUT)?.toSignificant() ?? 0) *
@@ -200,7 +206,9 @@ export function Content() {
     onDismiss,
     state: { swapStatus },
   } = useTwapConfirmationContext();
-  const { currencies, parsedAmount, tradeDestAmount } = useTwapContext();
+  const { currencies, parsedAmount, derivedSwapValues } = useTwapContext();
+
+  const tradeDestAmount = derivedSwapValues?.destTokenAmount;
 
   return (
     <ConfirmationModal

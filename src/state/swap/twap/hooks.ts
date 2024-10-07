@@ -91,29 +91,29 @@ export function useTwapSwapActionHandlers(): {
   );
 
   const onChunksInput = useCallback(
-    (typedChunks: number) => {
-      dispatch(setChunks({ typedChunks }));
+    (chunks: number) => {
+      dispatch(setChunks({ chunks }));
     },
     [dispatch],
   );
 
   const onFillDelayInput = useCallback(
-    (typedFillDelay: TimeDuration) => {
-      dispatch(setFillDelay({ typedFillDelay }));
+    (fillDelay: TimeDuration) => {
+      dispatch(setFillDelay({ fillDelay }));
     },
     [dispatch],
   );
 
   const onDurationInput = useCallback(
-    (typedDuration?: TimeDuration) => {
-      dispatch(setDuration({ typedDuration }));
+    (duration?: TimeDuration) => {
+      dispatch(setDuration({ duration }));
     },
     [dispatch],
   );
 
   const onLimitPriceInput = useCallback(
-    (typedLimitPrice?: string, limitPercent?: number) => {
-      dispatch(setLimitPrice({ typedLimitPrice, limitPercent }));
+    (limitPrice?: string, limitPercent?: number) => {
+      dispatch(setLimitPrice({ limitPrice, limitPercent }));
     },
     [dispatch],
   );

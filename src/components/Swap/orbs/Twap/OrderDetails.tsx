@@ -1,5 +1,4 @@
 import { Box, Typography } from '@material-ui/core';
-import { getSrcChunkAmount } from '@orbs-network/twap-sdk';
 import { Currency } from '@uniswap/sdk';
 import QuestionHelper from 'components/QuestionHelper';
 import { useActiveWeb3React } from 'hooks';
@@ -99,21 +98,17 @@ const Chunks = ({ totalChunks }: { totalChunks?: number }) => {
 };
 
 const ChunkSize = ({
-  srcAmount,
-  totalChunks,
+  srcChunk,
   inCurrency,
 }: {
-  srcAmount?: string;
-  totalChunks?: number;
+  srcChunk?: string;
   inCurrency?: Currency;
 }) => {
   const { t } = useTranslation();
 
   const amount = useMemo(() => {
-    return fromRawAmount(inCurrency, getSrcChunkAmount(srcAmount, totalChunks));
-  }, [srcAmount, totalChunks, inCurrency]);
-
-  if (totalChunks === 1) return null;
+    return fromRawAmount(inCurrency, srcChunk);
+  }, [srcChunk, inCurrency]);
 
   return (
     <TwapOrderDetailsRow

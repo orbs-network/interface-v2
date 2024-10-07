@@ -5,7 +5,6 @@ import {
   MIN_DURATION_MINUTES,
   groupOrdersByStatus,
   zeroAddress,
-  constructSDK
 } from '@orbs-network/twap-sdk';
 import { ChainId, Currency, currencyEquals, ETHER } from '@uniswap/sdk';
 import { useActiveWeb3React } from 'hooks';
@@ -15,88 +14,67 @@ import { V3Currency } from 'v3lib/entities/v3Currency';
 import { useApproval } from '../hooks';
 import { useCurrency } from 'hooks/Tokens';
 import { useTranslation } from 'react-i18next';
-import { SwapSide } from '@paraswap/sdk';
-import { GlobalValue, paraswapTaxBuy, paraswapTaxSell } from 'constants/index';
-import { getBestTradeCurrencyAddress, useParaswap } from '../../../../hooks/useParaswap';
-import { tryParseAmount } from 'state/swap/hooks';
+import useParsedQueryString from 'hooks/useParsedQueryString';
 import { Field } from '../../../../state/swap/actions';
 
+export const useInputError = () => {
+  const { account } = useActiveWeb3React();
+  const { parsedAmount, currencies, currencyBalances } = useTwapContext();
+  const parsedQuery = useParsedQueryString();
+  const swapType = parsedQuery?.swapIndex;
+  const durationWarning = useDurationWarning();
+  const tradeSizeWarning = useTradeSizeWarning();
+  const fillDelayWarning = useFillDelayWarning();
 
-export const useOptimalRateQuery = (
-  currencies: { [field in Field]?: Currency },
-  maxImpactAllowed: number,
-) => {
-  const paraswap = useParaswap();
-  const { chainId, account } = useActiveWeb3React();
-  const chainIdToUse = chainId || ChainId.MATIC;
-  const inputCurrency = currencies[Field.INPUT];
-  const outputCurrency = currencies[Field.OUTPUT];
+  return useMemo(() => {
+    if (!account) {
+      return 'Connect Wallet';
+    }
+    if (!parsedAmount) {
+      return 'Enter an amount';
+    }
 
-  // we always use 1 as the amount for the market price
-  const srcAmount = tryParseAmount(
-    chainIdToUse,
-    '1',
-    inputCurrency,
-  )?.raw.toString();
+    if (!currencies[Field.INPUT] || !currencies[Field.OUTPUT]) {
+      return 'Select a token';
+    }
 
-  const srcToken = inputCurrency
-    ? getBestTradeCurrencyAddress(inputCurrency, chainIdToUse)
-    : undefined;
-  const destToken = outputCurrency
-    ? getBestTradeCurrencyAddress(outputCurrency, chainIdToUse)
-    : undefined;
+    const amountIn = parsedAmount;
 
-  return useQuery({
-    queryKey: [
-      'fetchTwapOptimalRate',
-      srcToken,
-      destToken,
-      srcAmount,
-      account,
-      chainId,
-      maxImpactAllowed,
-    ],
-    queryFn: async () => {
-      if (!srcToken || !destToken || !srcAmount || !account)
-        return { error: undefined, rate: undefined };
-      try {
-        const rate = await paraswap.getRate({
-          srcToken,
-          destToken,
-          srcDecimals: inputCurrency?.decimals,
-          destDecimals: outputCurrency?.decimals,
-          amount: srcAmount,
-          side: SwapSide.SELL,
-          options: {
-            includeDEXS: 'quickswap,quickswapv3,quickswapv3.1,quickperps',
-            maxImpact: maxImpactAllowed,
-            partner: 'quickswapv3',
-            //@ts-ignore
-            srcTokenTransferFee: paraswapTaxSell[srcToken.toLowerCase()],
-            destTokenTransferFee: paraswapTaxBuy[destToken.toLowerCase()],
-          },
-        });
-
-        return { error: undefined, rate };
-      } catch (err) {
-        return { error: err.message, rate: undefined };
-      }
-    },
-    refetchInterval: 5000,
-    enabled: !!srcToken && !!destToken && !!account,
-  });
+    if (
+      swapType !== '0' &&
+      currencyBalances[Field.INPUT] &&
+      amountIn &&
+      currencyBalances[Field.INPUT].lessThan(amountIn)
+    ) {
+      return 'Insufficient ' + amountIn.currency.symbol + ' balance';
+    }
+    if (durationWarning) {
+      return durationWarning;
+    }
+    if (tradeSizeWarning) {
+      return tradeSizeWarning;
+    }
+    if (fillDelayWarning) {
+      return fillDelayWarning;
+    }
+  }, [
+    account,
+    parsedAmount,
+    currencies,
+    swapType,
+    currencyBalances[Field.INPUT],
+    durationWarning,
+    tradeSizeWarning,
+    fillDelayWarning,
+  ]);
 };
 
-
-
-export const useTwapSwapWarning = () => {
+export const useDurationWarning = () => {
   const { t } = useTranslation();
   const {
-    swapData: { warnings },
-    config,
+    derivedSwapValues: { warnings },
   } = useTwapContext();
-
-  const durationWarning = useMemo(() => {
+  return useMemo(() => {
     if (warnings.minDuration) {
       return t('minExpiryWarning', { value: MIN_DURATION_MINUTES });
     }
@@ -104,14 +82,27 @@ export const useTwapSwapWarning = () => {
       return t('maxExpiryWarning');
     }
   }, [warnings.maxDuration, warnings.minDuration, t]);
+};
 
-  const tradeSizeWarning = useMemo(() => {
+export const useTradeSizeWarning = () => {
+  const { t } = useTranslation();
+  const {
+    derivedSwapValues: { warnings },
+  } = useTwapContext();
+  return useMemo(() => {
     if (warnings.tradeSize) {
-      return t('tradeSizeWarning', { usd: config.minChunkSizeUsd });
+      return t('tradeSizeWarning');
     }
-  }, [warnings.tradeSize, config.minChunkSizeUsd, t]);
+  }, [warnings.tradeSize, t]);
+};
 
-  const fillDelayWarning = useMemo(() => {
+export const useFillDelayWarning = () => {
+  const { t } = useTranslation();
+  const {
+    derivedSwapValues: { warnings },
+  } = useTwapContext();
+
+  return useMemo(() => {
     if (warnings.minFillDelay) {
       return t('minFillDelayWarning', { value: MIN_FILL_DELAY_MINUTES });
     }
@@ -119,8 +110,6 @@ export const useTwapSwapWarning = () => {
       return t('maxFillDelayWarning', { value: MAX_FILL_DELAY_FORMATTED });
     }
   }, [warnings.minFillDelay, warnings.maxFillDelay, t]);
-
-  return tradeSizeWarning || fillDelayWarning || durationWarning;
 };
 
 export const isNativeCurrency = (currency?: Currency, chainId?: ChainId) => {
@@ -133,25 +122,28 @@ export const isNativeCurrency = (currency?: Currency, chainId?: ChainId) => {
 };
 
 export const useTwapApprovalCallback = () => {
-  const { parsedAmount, config, currencies } = useTwapContext();
+  const {
+    twapSDK: { config },
+    parsedAmount,
+    currencies
+  } = useTwapContext();
 
   return useApproval(
     config.twapAddress,
-    currencies.INPUT,
+    currencies[Field.INPUT],
     parsedAmount?.raw.toString(),
   );
 };
 
 export const useTwapOrdersQuery = () => {
   const { account } = useActiveWeb3React();
-  const { config } = useTwapContext();
+  const { twapSDK } = useTwapContext();
   const queryClient = useQueryClient();
-  const queryKey = ['useTwapOrders', account, config.chainId];
+  const queryKey = ['useTwapOrders', account, twapSDK.config.chainId];
   const query = useQuery(
     queryKey,
     async ({ signal }) => {
-      if (!account) return null;
-      return getOrders(config, account!, signal);
+      return twapSDK.getOrders(account!, signal);
     },
     {
       enabled: !!account,
@@ -163,7 +155,7 @@ export const useTwapOrdersQuery = () => {
         query.refetch();
       } else {
         try {
-          const orders = await waitForUpdatedOrders(config, id, account!);
+          const orders = await twapSDK.waitForOrdersUpdate(id, account!);
           if (orders) {
             queryClient.setQueryData(queryKey, orders);
             return orders;
@@ -174,7 +166,7 @@ export const useTwapOrdersQuery = () => {
         }
       }
     },
-    [queryClient, queryKey, account, config, query.data],
+    [account, query, queryClient, queryKey, twapSDK, query.refetch],
   );
 
   return useMemo(() => {

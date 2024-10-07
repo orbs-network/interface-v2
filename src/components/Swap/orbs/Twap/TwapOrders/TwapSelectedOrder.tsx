@@ -7,10 +7,6 @@ import {
 } from '@material-ui/core';
 import { Close } from '@material-ui/icons';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
-import {
-  getOrderExcecutionPrice,
-  getOrderLimitPrice,
-} from '@orbs-network/twap-sdk';
 import CurrencyLogo from 'components/CurrencyLogo';
 import { useActiveWeb3React } from 'hooks';
 import React, { ReactNode, useMemo, useState } from 'react';
@@ -179,10 +175,11 @@ const ChunkSize = () => {
   const { selectedOrder } = useTwapOrdersContext();
   const inCurrency = useOrderCurrencies().inCurrency;
 
+  if (selectedOrder?.totalChunks === 1) return null;
+
   return (
     <OrderDetails.ChunkSize
-      srcAmount={selectedOrder?.srcAmount}
-      totalChunks={selectedOrder?.totalChunks}
+      srcChunk={selectedOrder?.srcBidAmount}
       inCurrency={inCurrency}
     />
   );
@@ -254,14 +251,11 @@ const LimitPrice = () => {
 
   const price = useMemo(() => {
     if (!selectedOrder || !inCurrency || !outCurrency) return;
-    return getOrderLimitPrice(
-      selectedOrder,
+    return selectedOrder.getLimitPrice(
       inCurrency?.decimals,
       outCurrency?.decimals,
     );
   }, [selectedOrder, inCurrency?.decimals, outCurrency?.decimals]);
-  if (selectedOrder?.isMarketOrder) return null;
-
   if (selectedOrder?.isMarketOrder) return null;
 
   return (
@@ -316,8 +310,7 @@ const ExcecutionPrice = () => {
 
   const excecutionPrice = useMemo(() => {
     if (!selectedOrder || !inCurrency || !outCurrency) return undefined;
-    return getOrderExcecutionPrice(
-      selectedOrder,
+    return selectedOrder.getExcecutionPrice(
       inCurrency?.decimals,
       outCurrency?.decimals,
     );

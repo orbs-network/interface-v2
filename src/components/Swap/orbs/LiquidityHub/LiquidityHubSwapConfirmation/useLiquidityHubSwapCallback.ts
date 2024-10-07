@@ -59,10 +59,10 @@ const useWrapFlowCallback = () => {
       await wrap?.();
       liquidityHub.analytics.onWrapSuccess();
     } catch (error) {
-      liquidityHub.analytics.onWrapFailed(error);
+      liquidityHub.analytics.onWrapFailure(error);
       throw error;
     }
-  }, [wrap]);
+  }, [wrap, liquidityHub]);
 };
 
 const useApproveCallback = () => {
@@ -78,7 +78,7 @@ const useApproveCallback = () => {
       liquidityHub.analytics.onApprovalFailed(error);
       throw error;
     }
-  }, [approve]);
+  }, [approve, liquidityHub]);
 };
 
 const useSwapCallback = () => {
@@ -99,7 +99,7 @@ const useSwapCallback = () => {
       });
       const details = await liquidityHub.getTransactionDetails(
         txHash,
-        acceptedQuote!,
+        acceptedQuote,
       );
       return {
         txHash,
@@ -240,7 +240,7 @@ const useParaswapTxParamsCallback = () => {
         destToken: args.optimalRate.destToken,
         srcAmount: args.optimalRate.srcAmount,
         destAmount: getDexMinAmountOut(
-          args.allowedSlippage || 0,
+          args.allowedSlippage ?? 0,
           args.optimalRate.destAmount,
         )!,
         priceRoute: args.optimalRate,

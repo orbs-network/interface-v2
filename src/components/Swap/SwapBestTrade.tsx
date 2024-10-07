@@ -86,11 +86,7 @@ import SignUp from './SignUp';
 import { useWalletInfo } from '@web3modal/ethers5/react';
 import { useAppDispatch } from 'state';
 import { updateUserBalance } from 'state/balance/actions';
-
 import { LowSrcAmountWarning } from './LowSrcAmountWarning';
-import {
-  useIsLiquidityHubTrade,
-} from './orbs/LiquidityHub/hooks';
 import { useLiquidityHubQuote } from './orbs/LiquidityHub/hooks';
 import { LiquidityHubSwapConfirmation } from './orbs/LiquidityHub/LiquidityHubSwapConfirmation/LiquidityHubSwapConfirmation';
 import { LiquidityHubSwapDetails } from './orbs/LiquidityHub/LiquidityHubSwapDetails';

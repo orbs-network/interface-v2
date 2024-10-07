@@ -18,10 +18,10 @@ import {
 
 export interface TwapSwapState {
   readonly typedValue: string;
-  readonly typedChunks?: number;
-  readonly typedFillDelay?: TimeDuration;
-  readonly typedDuration?: TimeDuration;
-  readonly typedLimitPrice?: string;
+  readonly chunks?: number;
+  readonly fillDelay?: TimeDuration;
+  readonly duration?: TimeDuration;
+  readonly limitPrice?: string;
   readonly isMarketOrder?: boolean;
   readonly isLimitPriceInverted?: boolean;
   readonly limitPercent?: number;
@@ -106,22 +106,22 @@ export default createReducer<TwapSwapState>(initialState, (builder) =>
       state.swapDelay = swapDelay;
     })
 
-    .addCase(setChunks, (state, { payload: { typedChunks } }) => {
-      state.typedChunks = typedChunks;
+    .addCase(setChunks, (state, { payload: { chunks } }) => {
+      state.chunks = chunks;
     })
-    .addCase(setFillDelay, (state, { payload: { typedFillDelay } }) => {
-      state.typedFillDelay = typedFillDelay;
+    .addCase(setFillDelay, (state, { payload: { fillDelay } }) => {
+      state.fillDelay = fillDelay;
     })
-    .addCase(setDuration, (state, { payload: { typedDuration } }) => {
-      state.typedDuration = typedDuration;
+    .addCase(setDuration, (state, { payload: { duration } }) => {
+      state.duration = duration;
     })
     .addCase(setUpdatingOrders, (state, { payload: { updatingOrders } }) => {
       state.updatingOrders = updatingOrders;
     })
     .addCase(
       setLimitPrice,
-      (state, { payload: { typedLimitPrice, limitPercent } }) => {
-        state.typedLimitPrice = typedLimitPrice;
+      (state, { payload: { limitPrice, limitPercent } }) => {
+        state.limitPrice = limitPrice;
         state.limitPercent = limitPercent;
       },
     )
@@ -130,7 +130,7 @@ export default createReducer<TwapSwapState>(initialState, (builder) =>
       invertLimitPrice,
       (state, { payload: { isLimitPriceInverted } }) => {
         state.isLimitPriceInverted = isLimitPriceInverted;
-        state.typedLimitPrice = undefined;
+        state.limitPrice = undefined;
         state.limitPercent = undefined;
       },
     ),

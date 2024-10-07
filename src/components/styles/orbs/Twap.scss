@@ -129,11 +129,26 @@
   align-items: center;
   cursor: pointer;
   margin-top: 20px;
-  &Spinner {
-  }
+
   p {
     font-size: 14px;
   }
+}
+
+.TwapComponentContainer{
+  border-radius: 16px;
+  flex: 1;
+
+
+}
+
+.TwapComponentContainerInput {
+  border-radius: 10px;
+  padding: 8px 16px;
+  flex: 1;
+}
+.TwapChunkSelectText {
+  color: white;
 }
 
 .TwapSelectorButton {
@@ -142,7 +157,16 @@
   border-radius: 10px;
   padding: 4px 10px;
   &Selected {
-    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid transparent;
+    background-image: linear-gradient(to bottom, #141827, #141827);
+    mix-blend-mode: screen;
+    background-blend-mode: screen;
+  }
+  &:hover {
+    border: 1px solid transparent;
+    background-image: linear-gradient(to bottom, #141827, #141827);
+    mix-blend-mode: screen;
+    background-blend-mode: screen;
   }
 }
 .TwapDurationSelect {

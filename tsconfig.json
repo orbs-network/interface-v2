@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "baseUrl": "src",
+    "baseUrl": "./src",
     "target": "es5",
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
@@ -19,5 +19,6 @@
     "downlevelIteration": true,
     "noImplicitAny": false,
   },
-  "include": ["src"]
+  "include": ["./src"],
+  
 }

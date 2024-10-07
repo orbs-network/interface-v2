@@ -14,6 +14,7 @@ import {
   useExpertModeManager,
   useUserSlippageTolerance,
 } from 'state/user/hooks';
+import arrowDown from 'assets/images/icons/arrow-down.png';
 import { Field } from 'state/swap/actions';
 import { useHistory } from 'react-router-dom';
 import { CurrencyInput } from 'components';
@@ -25,7 +26,6 @@ import {
   basisPointsToPercent,
   halfAmountSpend,
 } from 'utils';
-import { ReactComponent as ExchangeIcon } from 'assets/images/ExchangeIcon.svg';
 import 'components/styles/Swap.scss';
 import { useTranslation } from 'react-i18next';
 import { SwapSide } from '@paraswap/sdk';
@@ -37,31 +37,51 @@ import { ONE } from 'v3lib/utils';
 import useNativeConvertCallback, {
   ConvertType,
 } from 'hooks/useNativeConvertCallback';
-import { useTwapSwapWarning } from './hooks';
 import {
   useDefaultsFromURLSearch,
   useTwapState,
   useTwapSwapActionHandlers,
 } from 'state/swap/twap/hooks';
-import { TwapContextProvider, useTwapContext } from './context';
+import { TwapContextProvider } from './context';
 import { TwapSwapConfirmation } from './TwapSwapConfirmation/TwapSwapConfirmation';
-import { ChunksSelect, DurationSelect, FillDelaySelect, InputsContainer, LimitPriceWarning } from './components';
+import {
+  ChunksSelect,
+  DurationSelect,
+  FillDelaySelect,
+  InputsContainer,
+  LimitPriceWarning,
+} from './components';
 import { LimitInputPanel } from './LimitPanel';
 import { TwapOrders } from './TwapOrders/TwapOrders';
+import 'components/styles/Swap.scss';
 import 'components/styles/orbs/Twap.scss';
 
+import { TimeUnit } from '@orbs-network/twap-sdk';
+import { useTwapContext, useOptimalRate } from './context';
+import { useInputError } from './hooks';
+import { FillDelayAndChunks } from './components';
 
 const Content: React.FC<{
   currencyBgClass?: string;
-}> = ({ currencyBgClass }) => {
+  isLimitPanel: boolean;
+}> = ({ currencyBgClass, isLimitPanel }) => {
   const history = useHistory();
   const isProMode = useIsProMode();
   const isSupportedNetwork = useIsSupportedNetwork();
   const loadedUrlParams = useDefaultsFromURLSearch();
+  const { onDurationInput } = useTwapSwapActionHandlers();
 
   const [dismissTokenWarning, setDismissTokenWarning] = useState<boolean>(
     false,
   );
+
+  useEffect(() => {
+    if (isLimitPanel) {
+      onDurationInput({ unit: TimeUnit.Days, value: 7 });
+    } else {
+      onDurationInput(undefined);
+    }
+  }, [isLimitPanel]);
 
   const handleConfirmTokenWarning = useCallback(() => {
     setDismissTokenWarning(true);
@@ -82,19 +102,20 @@ const Content: React.FC<{
   const { typedValue } = useTwapState();
   const chainIdToUse = chainId ? chainId : ChainId.MATIC;
   const independentField = Field.INPUT;
-
   const {
-    currencyBalances,
     parsedAmount,
+    derivedSwapValues,
     currencies,
-    inputError: swapInputError,
+    currencyBalances,
     maxImpactAllowed,
-    optimalRate,
-    tradeDestAmount,
-    loadingOptimalRate,
-    optimalRateError,
-    isLimitPanel,
   } = useTwapContext();
+  const swapInputError = useInputError();
+  const tradeDestAmount = derivedSwapValues.destTokenAmount;
+
+  const { data, isLoading: loadingOptimalRate } = useOptimalRate();
+
+  const optimalRate = data?.rate;
+  const optimalRateError = data?.error;
 
   const [isExpertMode] = useExpertModeManager();
   const {
@@ -296,13 +317,10 @@ const Content: React.FC<{
     tradeDestAmount,
   ]);
 
-  const maxAmountInputV2 = maxAmountSpend(
-    chainIdToUse,
-    currencyBalances[Field.INPUT],
-  );
+  const maxAmountInputV2 = maxAmountSpend(chainIdToUse, currencyBalances.INPUT);
   const halfAmountInputV2 = halfAmountSpend(
     chainIdToUse,
-    currencyBalances[Field.INPUT],
+    currencyBalances.INPUT,
   );
   const formattedAmounts = useMemo(() => {
     return {
@@ -357,7 +375,6 @@ const Content: React.FC<{
 
   const noRoute = !optimalRate || optimalRate.bestRoute.length < 0;
   const srcAmount = optimalRate?.srcAmount;
-  const twapSwapWarning = useTwapSwapWarning();
 
   const swapInputAmountWithSlippage =
     inputCurrencyV3 && srcAmount
@@ -372,7 +389,7 @@ const Content: React.FC<{
         )
       : undefined;
 
-  const swapInputBalanceCurrency = currencyBalances[Field.INPUT];
+  const swapInputBalanceCurrency = currencyBalances.INPUT;
 
   const swapInputBalance =
     swapInputBalanceCurrency && inputCurrencyV3
@@ -422,8 +439,6 @@ const Content: React.FC<{
           : optimalRateError;
       } else if (swapInputError) {
         return swapInputError;
-      } else if (twapSwapWarning) {
-        return twapSwapWarning;
       } else if (noRoute && userHasSpecifiedInputOutput) {
         return t('insufficientLiquidityTrade');
       } else if (
@@ -461,7 +476,6 @@ const Content: React.FC<{
     wrapInputError,
     wrapType,
     maxImpactAllowed,
-    twapSwapWarning,
   ]);
 
   const maxImpactReached = optimalRate?.maxImpactReached;
@@ -495,7 +509,7 @@ const Content: React.FC<{
       } else if (noRoute && userHasSpecifiedInputOutput) {
         return true;
       } else {
-        return isSwapError || twapSwapWarning;
+        return isSwapError;
       }
     } else {
       return false;
@@ -519,7 +533,6 @@ const Content: React.FC<{
     tradeSrcAmount,
     tradeDestAmount,
     maxImpactReached,
-    twapSwapWarning,
     swapInputError,
   ]);
 
@@ -539,8 +552,12 @@ const Content: React.FC<{
   );
 
   const onSubmitSwap = useCallback(() => {
-    setShowConfirm(true);
-  }, []);
+    if (wrapType === WrapType.WRAP || wrapType === WrapType.UNWRAP) {
+      onWrap?.();
+    } else {
+      setShowConfirm(true);
+    }
+  }, [onWrap, wrapType]);
   return (
     <Box>
       <TokenWarningModal
@@ -558,6 +575,7 @@ const Content: React.FC<{
       <CurrencyInput
         title={`${t('allocate')}:`}
         id='swap-currency-input'
+        classNames='from_input'
         currency={currencies[Field.INPUT]}
         onHalf={handleHalfInput}
         onMax={handleMaxInput}
@@ -571,20 +589,31 @@ const Content: React.FC<{
         bgClass={isProMode ? 'swap-bg-highlight' : currencyBgClass}
       />
       <Box className='exchangeSwap'>
-        <ExchangeIcon
-          onClick={() => {
-            setSwapType(
-              swapType === SwapSide.BUY ? SwapSide.SELL : SwapSide.BUY,
-            );
-            redirectWithSwitch();
-          }}
-        />
+      <Box
+        onClick={() => {
+          setSwapType(swapType === SwapSide.BUY ? SwapSide.SELL : SwapSide.BUY);
+          redirectWithSwitch();
+        }}
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: '24px',
+          height: '24px',
+          borderRadius: '4px',
+          border: '2px solid #191b2e',
+          bgcolor: '#232734',
+        }}
+      >
+        <img src={arrowDown} alt='arrow down' width='12px' height='12px' />
+      </Box>
       </Box>
       <CurrencyInput
         title={`${t('toEstimate')}:`}
         id='swap-currency-output'
+        classNames='to_input'
         currency={currencies[Field.OUTPUT]}
-        showPrice={Boolean(optimalRate)}
+
         showMaxButton={false}
         otherCurrency={currencies[Field.INPUT]}
         handleCurrencySelect={handleOtherCurrencySelect}
@@ -595,8 +624,9 @@ const Content: React.FC<{
         disabled={true}
       />
       <InputsContainer>
-        {!isLimitPanel && <FillDelaySelect />}
-        {!isLimitPanel && <ChunksSelect />}
+      <FillDelayAndChunks />
+         {/* {!isLimitPanel && <FillDelaySelect />}
+         {!isLimitPanel && <ChunksSelect />} */}
         {isLimitPanel && <DurationSelect />}
       </InputsContainer>
 
@@ -628,7 +658,10 @@ export const SwapTwap: React.FC<{
 }> = ({ isLimitPanel, currencyBgClass }) => {
   return (
     <TwapContextProvider isLimitPanel={!!isLimitPanel}>
-      <Content currencyBgClass={currencyBgClass} />
+      <Content
+        currencyBgClass={currencyBgClass}
+        isLimitPanel={!!isLimitPanel}
+      />
     </TwapContextProvider>
   );
 };
