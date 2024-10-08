@@ -12,9 +12,27 @@
   & .styledInput {
     width: unset;
     flex: 1;
+    padding-left: 8px;
   }
 }
 
+
+.TwapSwitch {
+  padding: 10px;
+  border-radius: 10px;
+  background: #1f263d;
+  display: flex;
+  width: fit-content;
+  margin-bottom: 2px;
+  margin-left: auto;
+  &Item {
+    font-size: white;
+    min-width: 80px;
+    text-align: center;
+    font-size: 14px;
+    padding: 0px 5px;
+  }
+}
 .TwapLimitPanelHeader {
   display: flex;
   align-items: center;
@@ -24,6 +42,7 @@
     display: flex;
     align-items: center;
     justify-content: flex-start;
+    color: white;
     .currencyLogo {
       margin-left: 5px;
       margin-right: 5px;
@@ -46,7 +65,7 @@
   }
 }
 .TwapLimitPanel {
-  margin-bottom: 8px;
+  margin-bottom: 2px;
   &Input {
     flex: 1;
   }
@@ -81,32 +100,46 @@
   }
 }
 
+
+.TwapInputContent {
+  border-radius: 10px;
+  padding: 8px 16px;
+  flex: 1;
+}
+
+.TwapInput {
+  border-radius: 16px;
+  flex: 1;
+}
+
 .TwapFillDelaySelect {
-  display: flex;
-  width: 100%;
-  justify-content: space-between;
-  align-items: center;
-  gap: 20px;
-  padding-top: 0px;
-  padding-bottom: 0px;
+  border-top-right-radius: 0px;
+  border-bottom-right-radius: 0px;
 }
 
 .TwapChunkSelect {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
+  border-top-left-radius: 0px;
+  border-bottom-left-radius: 0px;
+  .TwapInputContent {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+  
+  }
   &Text {
     color: $textHint;
     font-size: 15px;
   }
-  &Size {
-    font-size: 14px;
-    margin-top: 10px;
+}
+
+.TwapChunkSize {
+  font-size: 14px;
+  margin-top: 5px;
+  color: white;
+  small {
+    font-size: 12px;
     color: $textHint;
-    small {
-      font-size: 12px;
-    }
   }
 }
 .TwapLimitPriceWarning {
@@ -135,20 +168,30 @@
   }
 }
 
-.TwapComponentContainer{
-  border-radius: 16px;
-  flex: 1;
 
 
+.TwapResolutionButton {
+  text-transform: capitalize;
+  color: white;
+  display: flex;
+  gap: 0px;
+  align-items: center;
+  p {
+    font-size: 13px;
+  }
 }
 
-.TwapComponentContainerInput {
-  border-radius: 10px;
-  padding: 8px 16px;
-  flex: 1;
+.TwapInputs {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-top: 2px;
 }
+
+
 .TwapChunkSelectText {
   color: white;
+  font-size: 13px;
 }
 
 .TwapSelectorButton {
@@ -172,21 +215,23 @@
 .TwapDurationSelect {
   display: flex;
   justify-content: space-between;
+  align-items: center;
 
-  &Title {
-    font-size: 14px;
-    display: flex;
-    gap: 5px;
-    align-items: center;
-  }
   .TwapSelectorButton {
     span {
       text-transform: capitalize;
     }
   }
+ .TwapInputHeader{
+  margin-bottom: 0px;
+ }
+
   &Buttons {
+    justify-content: flex-end;
+    flex: 1;
+
     display: flex;
-    gap: 10px;
+    gap: 5px;
   }
 }
 .TwapConfirmationPrice {

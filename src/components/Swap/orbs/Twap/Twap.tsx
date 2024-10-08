@@ -45,11 +45,8 @@ import {
 import { TwapContextProvider } from './context';
 import { TwapSwapConfirmation } from './TwapSwapConfirmation/TwapSwapConfirmation';
 import {
-  ChunksSelect,
-  DurationSelect,
-  FillDelaySelect,
-  InputsContainer,
   LimitPriceWarning,
+  TwapInputs
 } from './components';
 import { LimitInputPanel } from './LimitPanel';
 import { TwapOrders } from './TwapOrders/TwapOrders';
@@ -59,7 +56,6 @@ import 'components/styles/orbs/Twap.scss';
 import { TimeUnit } from '@orbs-network/twap-sdk';
 import { useTwapContext, useOptimalRate } from './context';
 import { useInputError } from './hooks';
-import { FillDelayAndChunks } from './components';
 
 const Content: React.FC<{
   currencyBgClass?: string;
@@ -589,31 +585,32 @@ const Content: React.FC<{
         bgClass={isProMode ? 'swap-bg-highlight' : currencyBgClass}
       />
       <Box className='exchangeSwap'>
-      <Box
-        onClick={() => {
-          setSwapType(swapType === SwapSide.BUY ? SwapSide.SELL : SwapSide.BUY);
-          redirectWithSwitch();
-        }}
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          width: '24px',
-          height: '24px',
-          borderRadius: '4px',
-          border: '2px solid #191b2e',
-          bgcolor: '#232734',
-        }}
-      >
-        <img src={arrowDown} alt='arrow down' width='12px' height='12px' />
-      </Box>
+        <Box
+          onClick={() => {
+            setSwapType(
+              swapType === SwapSide.BUY ? SwapSide.SELL : SwapSide.BUY,
+            );
+            redirectWithSwitch();
+          }}
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '24px',
+            height: '24px',
+            borderRadius: '4px',
+            border: '2px solid #191b2e',
+            bgcolor: '#232734',
+          }}
+        >
+          <img src={arrowDown} alt='arrow down' width='12px' height='12px' />
+        </Box>
       </Box>
       <CurrencyInput
         title={`${t('toEstimate')}:`}
         id='swap-currency-output'
         classNames='to_input'
         currency={currencies[Field.OUTPUT]}
-
         showMaxButton={false}
         otherCurrency={currencies[Field.INPUT]}
         handleCurrencySelect={handleOtherCurrencySelect}
@@ -623,12 +620,8 @@ const Content: React.FC<{
         bgClass={isProMode ? 'swap-bg-highlight' : currencyBgClass}
         disabled={true}
       />
-      <InputsContainer>
-      <FillDelayAndChunks />
-         {/* {!isLimitPanel && <FillDelaySelect />}
-         {!isLimitPanel && <ChunksSelect />} */}
-        {isLimitPanel && <DurationSelect />}
-      </InputsContainer>
+
+      <TwapInputs />
 
       <Box className='swapButtonWrapper'>
         <Box width={'100%'}>

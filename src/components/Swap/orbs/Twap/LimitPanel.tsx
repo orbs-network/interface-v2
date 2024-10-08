@@ -1,5 +1,5 @@
 import { Box } from '@material-ui/core';
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { useTwapState, useTwapSwapActionHandlers } from 'state/swap/twap/hooks';
 import { Card, SelectorButton } from './components';
 import NumericalInput from 'components/NumericalInput';
@@ -15,6 +15,8 @@ import CurrencyLogo from 'components/CurrencyLogo';
 import SwapVertIcon from '@material-ui/icons/SwapVert';
 import { useTranslation } from 'react-i18next';
 import { useOptimalRate } from './context';
+import CustomTabSwitch from 'components/v3/CustomTabSwitch';
+
 const useInvertedAmount = (amount?: string) => {
   const { chainId } = useActiveWeb3React();
   const { currencies } = useTwapContext();
@@ -26,6 +28,26 @@ const useInvertedAmount = (amount?: string) => {
     ).toString();
     return tryParseAmount(chainId, result, currencies.OUTPUT);
   }, [chainId, currencies.OUTPUT, amount]);
+};
+
+const Switch = () => {
+  const [isLimit, setIsLimit] = useState(true);
+  return (
+    <Box className='TwapSwitch'>
+      <Box
+        onClick={() => setIsLimit(false)}
+        className={`TwapSwitchItem ${!isLimit && 'TwapSwitchItemSelected'}`}
+      >
+        Market
+      </Box>
+      <Box
+        onClick={() => setIsLimit(false)}
+        className={`TwapSwitchItem ${isLimit && 'TwapSwitchItemSelected'}`}
+      >
+        Limit
+      </Box>
+    </Box>
+  );
 };
 
 export function LimitInputPanel() {
@@ -45,7 +67,10 @@ export function LimitInputPanel() {
     : currencies.OUTPUT;
 
   return (
+   <>
+    <Switch />
     <Card className='TwapLimitPanel'>
+   
       <Box className='TwapLimitPanelHeader'>
         <Box className='TwapLimitPanelHeaderTitle'>
           When 1 <CurrencyLogo currency={inCurrency} size='17px' />{' '}
@@ -73,6 +98,7 @@ export function LimitInputPanel() {
       </Box>
       <PercentButtons />
     </Card>
+   </>
   );
 }
 
@@ -151,7 +177,9 @@ const PercentButtons = () => {
       if (!price) return;
       const adjustment = percentage / 100;
 
-      const newLimitPrice = (Number(price) * (1 + adjustment)).toString();
+      const newLimitPrice = parseFloat(
+        (Number(price) * (1 + adjustment)).toFixed(5),
+      );
       onLimitPriceInput(newLimitPrice.toString() || '', percentage);
     },
     [marketPrice, currencies, onLimitPriceInput, isLimitPriceInverted],
@@ -185,8 +213,8 @@ const ResetButton = () => {
   const priceDiff = useCalculatePercentageDiff();
   const state = useTwapState();
   const { t } = useTranslation();
-  const { isLimitPanel } = useTwapContext();
   const showPercent = priceDiff && !state.limitPercent;
+  console.log(state.limitPercent, priceDiff);
 
   if (!showPercent) {
     return (
@@ -194,7 +222,7 @@ const ResetButton = () => {
         onClick={() => onLimitPriceInput(undefined)}
         selected={Number(priceDiff) === 0 && state.limitPrice !== ''}
       >
-        {isLimitPanel ? '0%' : t('market')}
+        0%
       </SelectorButton>
     );
   }

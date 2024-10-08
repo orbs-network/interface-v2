@@ -8,25 +8,27 @@ import { useTranslation } from 'react-i18next';
 import { useTwapSwapActionHandlers } from 'state/swap/twap/hooks';
 import { fromRawAmount } from '../utils';
 import { TimeDuration, TimeUnit } from '@orbs-network/twap-sdk';
-import { KeyboardArrowDown } from '@material-ui/icons';
 import ReportProblemIcon from '@material-ui/icons/ReportProblem';
 import { TWAP_FAQ } from '../consts';
 import useUSDCPrice from 'utils/useUSDCPrice';
 import { useTwapContext } from './context';
 import { Field } from '../../../../state/swap/actions';
+import { KeyboardArrowDown } from '@material-ui/icons';
 
 export const Section = ({
   title,
   tootlip,
   children,
+  className = '',
 }: {
   title: string;
   tootlip?: string;
   children: React.ReactNode;
+  className?: string;
 }) => {
   return (
-    <Box className='swapBox bg-secondary4 TwapComponentContainer'>
-      <Box mb={1.5} className='flex items-center'>
+    <Box className={`swapBox bg-secondary4 TwapInput ${className}`}>
+      <Box mb={1.5} className='flex items-center TwapInputHeader'>
         <SectionTitle>{title}</SectionTitle>
         {tootlip && <QuestionHelper size={18} text={tootlip} />}
       </Box>
@@ -43,9 +45,7 @@ const SectionInput = ({
   className?: string;
 }) => {
   return (
-    <Box className={`TwapComponentContainerInput  bg-input1 ${className}`}>
-      {children}
-    </Box>
+    <Box className={`TwapInputContent bg-input1 ${className}`}>{children}</Box>
   );
 };
 
@@ -77,26 +77,18 @@ const StyledCard = styled(Box)({
   borderRadius: 16,
 });
 
-
-
-export const InputsContainer = styled(Box)({
-  display: 'flex',
-  flexDirection: 'column',
-  gap: 10,
-  marginTop: 10,
-});
-
-export const ChunksSelect = () => {
+const Chunks = () => {
   const { t } = useTranslation();
   const { onChunksInput } = useTwapSwapActionHandlers();
   const { chunks } = useTwapContext().derivedSwapValues;
 
   return (
     <Section
+      className='TwapChunkSelect'
       title='Over'
       tootlip='The total number of individual trades that will be scheduled as part of your order. Note that in limit orders, it is possible that not all scheduled trades will be executed.'
     >
-      <SectionInput className='TwapChunkSelect'>
+      <SectionInput>
         <NumericalInput
           value={chunks}
           align='left'
@@ -108,7 +100,6 @@ export const ChunksSelect = () => {
         />
         <p className='TwapChunkSelectText'>{t('orders')}</p>
       </SectionInput>
-      <ChunkSize />
     </Section>
   );
 };
@@ -130,71 +121,73 @@ const ChunkSize = () => {
 
   const amount = fromRawAmount(currencies[Field.INPUT], srcChunkAmount);
   return (
-    <Box className='TwapChunkSelectSize'>
+    <Box className='TwapChunkSize'>
       {formatNumber(amount?.toExact())} {amount?.currency.symbol} per trade{' '}
       <small>{`($${formatNumber(srcChukAmountUsd)})`}</small>
     </Box>
   );
 };
 
-const options: { unit: TimeUnit; value: number; label: string }[] = [
+const resolutions: { unit: TimeUnit; label: string }[] = [
+  {
+    label: 'minute',
+    unit: TimeUnit.Minutes,
+  },
   {
     label: 'day',
     unit: TimeUnit.Days,
-    value: 1,
   },
   {
     label: 'week',
-    unit: TimeUnit.Days,
-    value: 7,
+    unit: TimeUnit.Weeks,
   },
   {
     label: 'month',
-    unit: TimeUnit.Days,
-    value: 30,
+    unit: TimeUnit.Months,
   },
 ];
 
-export function DurationSelect() {
+function DurationSelect() {
   const { t } = useTranslation();
   const { onDurationInput } = useTwapSwapActionHandlers();
   const { duration } = useTwapContext().derivedSwapValues;
 
   return (
-    <Box className='TwapDurationSelect'>
-      <p className='TwapDurationSelectTitle'>
-        {t('expiry')} <QuestionHelper text={t('expiryTooltip')} />
-      </p>
+    <Section
+      tootlip={t('expiryTooltip')}
+      title={t('expiry')}
+      className='TwapDurationSelect'
+    >
       <Box className='TwapDurationSelectButtons'>
-        {options.map((option, index) => {
-          const selected =
-            duration.unit * duration.value === option.unit * option.value;
-          return (
-            <SelectorButton
-              key={index}
-              selected={selected}
-              onClick={() =>
-                onDurationInput({ unit: option.unit, value: option.value })
-              }
-            >
-              1 <span>{t(option.label)}</span>
-            </SelectorButton>
-          );
-        })}
+        {resolutions
+          .filter((it) => it.unit !== TimeUnit.Minutes)
+          .map((option, index) => {
+            const selected = duration.unit * duration.value === option.unit * 1;
+            return (
+              <SelectorButton
+                key={index}
+                selected={selected}
+                onClick={() => onDurationInput({ unit: option.unit, value: 1 })}
+              >
+                1 <span>{t(option.label)}</span>
+              </SelectorButton>
+            );
+          })}
       </Box>
-    </Box>
+    </Section>
   );
 }
 
-export const FillDelaySelect = () => {
+const FillDelay = () => {
   const { fillDelay } = useTwapContext().derivedSwapValues;
   const onChange = useTwapSwapActionHandlers().onFillDelayInput;
   return (
     <Section
+      className='TwapFillDelaySelect'
       title='Every'
       tootlip='The estimated time that will elapse between each trade in your order. Note that as this time includes an allowance of two minutes for bidder auction and block settlement, which cannot be predicted exactly, actual time may vary.'
     >
-     <SectionInput className='TwapFillDelaySelect'>
+      <SectionInput>
         <NumericalInput
           value={fillDelay.value}
           align='left'
@@ -204,21 +197,11 @@ export const FillDelaySelect = () => {
             onChange({ ...fillDelay, value: Number(val) });
           }}
         />
-         <ResolutionSelect duration={fillDelay} onChange={onChange} />
+        <ResolutionSelect duration={fillDelay} onChange={onChange} />
       </SectionInput>
-
     </Section>
   );
 };
-
-export const FillDelayAndChunks = () => {
-  return (
-    <Box style={{display:'flex', gap: 10}}>
-      <FillDelaySelect />
-      <ChunksSelect />
-    </Box>
-  );
-}
 
 const ResolutionSelect = ({
   duration,
@@ -251,26 +234,16 @@ const ResolutionSelect = ({
   );
 
   const selected = useMemo(
-    () => options.find((option) => option.unit === duration.unit),
+    () => resolutions.find((option) => option.unit === duration.unit),
     [duration],
   );
 
   return (
     <Box>
-      <Button
-        style={{ height: 38, textTransform: 'capitalize' }}
-        onClick={onOpen}
-        id='swap-button'
-        aria-controls={open ? 'swap-menu' : undefined}
-        aria-haspopup='true'
-        aria-expanded={open ? 'true' : undefined}
-        variant='text'
-        disableElevation
-        endIcon={<KeyboardArrowDown />}
-        className={`tab tabMenu`}
-      >
-        {t(selected?.label || 'minutes')}
-      </Button>
+      <button onClick={onOpen} className='TwapResolutionButton'>
+        <p style={{ fontSize: 13 }}>{t(selected?.label || 'minutes')}</p>
+        <KeyboardArrowDown />
+      </button>
       <Menu
         id='swap-menu'
         anchorEl={anchorEl}
@@ -281,8 +254,9 @@ const ResolutionSelect = ({
           role: 'listbox',
         }}
       >
-        {options.map((option, index) => {
+        {resolutions.map((option) => {
           const selected = duration.unit === option.unit;
+
           return (
             <MenuItem
               style={{ textTransform: 'capitalize' }}
@@ -300,6 +274,28 @@ const ResolutionSelect = ({
           );
         })}
       </Menu>
+    </Box>
+  );
+};
+
+export const TwapInputs = () => {
+  const isLimitPanel = useTwapContext().isLimitPanel;
+
+  if (isLimitPanel) {
+    return (
+      <Box className='TwapInputs'>
+        <DurationSelect />
+      </Box>
+    );
+  }
+
+  return (
+    <Box className='TwapInputs'>
+      <Box style={{ display: 'flex', gap: 2 }}>
+        <FillDelay />
+        <Chunks />
+      </Box>
+      <ChunkSize />
     </Box>
   );
 };
