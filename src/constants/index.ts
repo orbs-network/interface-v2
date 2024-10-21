@@ -2353,6 +2353,8 @@ export const IchiVaults: {
   [ChainId.ZKEVM]: [
     '0x423382e084f1d1d180bec638bc64cc6408896c3c',
     '0xb4eac29e630e38133e015ad17e3986886d5e8b35',
+    '0xc0892aD9148b6A6520698BA0079E92242435bF7b',
+    '0x24091dAe5CEBbb3ebb52A786716015B83FBe3fe5',
   ],
 };
 
@@ -2695,7 +2697,7 @@ export const GlobalData = {
     [ChainId.TIMX]: [USDC[ChainId.TIMX]],
     [ChainId.BTTC]: [],
     [ChainId.X1]: [USDC[ChainId.X1]],
-    [ChainId.IMX]: [USDC[ChainId.IMX], USDT[ChainId.IMX]],
+    [ChainId.IMX]: [USDC[ChainId.IMX], USDT[ChainId.IMX], axlUSDC[ChainId.IMX]],
     [ChainId.ASTARZKEVM]: [
       USDC[ChainId.ASTARZKEVM],
       USDT[ChainId.ASTARZKEVM],

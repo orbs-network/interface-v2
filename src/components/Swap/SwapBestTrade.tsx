@@ -445,7 +445,7 @@ const SwapBestTrade: React.FC<{
     inAmount: parsedAmount?.raw.toString(),
     inCurrency: currencies[Field.INPUT],
     outCurrency: currencies[Field.OUTPUT],
-    dexOutAmount: optimalRate?.destAmount,
+    dexOutAmount: isLiquidityHubOnly ? '0' : optimalRate?.destAmount,
     disabled: liquidityHubDisabled,
     wrapType,
   });
