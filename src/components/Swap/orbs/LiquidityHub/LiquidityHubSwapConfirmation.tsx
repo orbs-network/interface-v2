@@ -136,7 +136,7 @@ const useAmounts = () => {
     outCurrency,
   } = useLiquidityHubConfirmationContext();
   const inAmount = fromRawAmount(inCurrency, quote?.inAmount);
-  const outAmount = fromRawAmount(outCurrency, quote?.outAmount);
+  const outAmount = fromRawAmount(outCurrency, quote?.referencePrice);
   const inUsd =
     Number(useUSDCPrice(inCurrency)?.toSignificant() ?? 0) *
     Number(inAmount?.toExact() || 0);
