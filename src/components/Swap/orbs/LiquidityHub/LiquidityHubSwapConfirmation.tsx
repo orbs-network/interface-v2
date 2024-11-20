@@ -47,13 +47,14 @@ export interface LiquidityHubConfirmationProps {
   outCurrency?: Currency;
   isOpen: boolean;
   onDismiss: () => void;
-  refetchLatestQuote: () => Promise<Quote>;
+  refetchLatestQuote: () => Promise<Quote | null | undefined>;
   quote?: Quote | null;
   onSwapFailed: () => void;
   onSwapSuccess: () => void;
   optimalRate?: OptimalRate;
   allowedSlippage?: number;
   onLiquidityHubSwapInProgress: (value: boolean) => void;
+  inAmount?: string;
 }
 export interface LiquidityHubConfirmationState {
   acceptedQuote?: Quote | null;
@@ -120,13 +121,9 @@ const ContextProvider = ({ children, ...props }: ContextProps) => {
 const useLiquidityHubConfirmationContext = () => React.useContext(Context);
 
 const useLiquidityHubApproval = () => {
-  const { inCurrency, quote } = useLiquidityHubConfirmationContext();
-  const inAmount = fromRawAmount(inCurrency, quote?.inAmount);
-  return useApproval(
-    permit2Address,
-    inCurrency,
-    inAmount?.numerator.toString(),
-  );
+  const { inCurrency, inAmount } = useLiquidityHubConfirmationContext();
+
+  return useApproval(permit2Address, inCurrency, inAmount);
 };
 
 const useAmounts = () => {
@@ -267,6 +264,7 @@ function Content() {
     onDismiss,
   } = useLiquidityHubConfirmationContext();
   const { inAmount, outAmount } = useAmounts();
+  useLiquidityHubApproval();
 
   return (
     <ConfirmationModal
@@ -435,6 +433,11 @@ const useLiquidityHubSwapCallback = () => {
         }
 
         const acceptedQuote = await refetchLatestQuote();
+        console.log({ acceptedQuote });
+
+        if (!acceptedQuote) {
+          throw new Error('Failed to fetch quote');
+        }
         onAcceptQuote(acceptedQuote);
         updateStore({ currentStep: Steps.SWAP });
         const signature = await promiseWithTimeout(

@@ -15,7 +15,7 @@ import { useIsNativeCurrencyCallback } from '../hooks';
 import { getAmountMinusSlippage } from '../utils';
 import { _TypedDataEncoder } from 'ethers/lib/utils';
 import { WrapType } from 'hooks/useWrapCallback';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import BN from 'bignumber.js';
 
 export const useIsLhPureAggregationMode = () => {
@@ -79,6 +79,15 @@ export const useIsLiquidityHubTrade = (
   ]);
 };
 
+export const isLiquidityHubTrade = (
+  lhAmount = '',
+  dexAmount = '',
+  slippage: number,
+) => {
+  const dexMinAmountOut = getAmountMinusSlippage(slippage, dexAmount);
+  return BN(lhAmount).gt(dexMinAmountOut || 0);
+};
+
 export const useIsLiquidityHubSupported = () => {
   const { chainId } = useActiveWeb3React();
   const config = getConfig(chainId);
@@ -129,7 +138,7 @@ export const useLiquidityHubQuote = ({
     return getAmountMinusSlippage(allowedSlippage || 0, dexOutAmount);
   }, [dexOutAmount, allowedSlippage, isLhPureAggregationMode]);
 
-  const disabled = isLhPureAggregationMode ? false : _disabled;
+  const disabled = isLhPureAggregationMode ? false : true;
 
   const queryKey = useMemo(() => {
     return [
@@ -139,9 +148,8 @@ export const useLiquidityHubQuote = ({
       inAmount,
       allowedSlippage,
       chainId,
-      dexMinAmountOut,
     ];
-  }, [fromToken, toToken, inAmount, allowedSlippage, chainId, dexMinAmountOut]);
+  }, [fromToken, toToken, inAmount, allowedSlippage, chainId]);
 
   const fecthQuoteCallback = useCallback(
     (signal?: AbortSignal) => {
@@ -202,11 +210,49 @@ export const useLiquidityHubQuote = ({
   return useMemo(() => {
     return {
       ...query,
-      ensureQueryData: () =>
-        queryClient.ensureQueryData({
-          queryKey,
-          queryFn: ({ signal }) => fecthQuoteCallback(signal),
-        }),
+      refetch: async () => (await query.refetch()).data,
     };
-  }, [query, queryClient, fecthQuoteCallback, queryKey]);
+  }, [query]);
+};
+
+export const useLiquidityHubCallback = ({
+  allowedSlippage,
+  inAmount,
+  inCurrency,
+  outCurrency,
+}: {
+  allowedSlippage?: number;
+  inAmount?: string;
+  inCurrency?: Currency;
+  outCurrency?: Currency;
+}) => {
+  const { account, chainId } = useActiveWeb3React();
+  const isNativeCurrency = useIsNativeCurrencyCallback();
+  const [liquidityHubDisabled] = useLiquidityHubManager();
+  const isSupported = useIsLiquidityHubSupported();
+  const liquidityHub = useLiquidityHubSDK();
+
+  return useMutation({
+    mutationFn: async (dexOutAmount?: string) => {
+      if (!isSupported || liquidityHubDisabled) return null;
+      const fromToken = wrappedCurrency(inCurrency, chainId)?.address;
+      const toToken = isNativeCurrency(outCurrency)
+        ? zeroAddress
+        : wrappedCurrency(outCurrency, chainId)?.address;
+      if (!fromToken || !toToken || !inAmount || !allowedSlippage) {
+        throw new Error('Invalid input');
+      }
+      return liquidityHub.getQuote({
+        fromToken,
+        toToken,
+        inAmount,
+        dexMinAmountOut: getAmountMinusSlippage(
+          allowedSlippage || 0,
+          dexOutAmount,
+        ),
+        account,
+        slippage: allowedSlippage / 100,
+      });
+    },
+  });
 };
