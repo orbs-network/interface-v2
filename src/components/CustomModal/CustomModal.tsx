@@ -10,6 +10,7 @@ interface CustomModalProps {
   overflow?: string;
   modalWrapper?: string;
   hideBackdrop?: boolean;
+  className?: string;
 }
 
 const CustomModal: React.FC<CustomModalProps> = ({
@@ -20,12 +21,14 @@ const CustomModal: React.FC<CustomModalProps> = ({
   overflow,
   modalWrapper,
   hideBackdrop,
+  className = '',
 }) => {
   return (
     <Modal
       open={open}
       onClose={onClose}
       BackdropComponent={hideBackdrop ? undefined : Backdrop}
+      className={className}
       BackdropProps={
         hideBackdrop
           ? undefined
