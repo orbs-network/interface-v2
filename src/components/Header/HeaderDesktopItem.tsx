@@ -13,7 +13,7 @@ export const HeaderDesktopItem: React.FC<{
   anchorOrigin?: any;
   transformOrigin?: any;
 }> = ({ item, anchorOrigin, transformOrigin }) => {
-  console.log('🚀 ~HeaderDesktopItem item:', item);
+  // console.log('🚀 ~HeaderDesktopItem item:', item);
   const { breakpoints } = useTheme();
 
   const isMobile = useMediaQuery(breakpoints.down('sm'));
