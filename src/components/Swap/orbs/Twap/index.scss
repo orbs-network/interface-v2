@@ -1,0 +1,205 @@
+.twap-widget {
+  input {
+    outline: none;
+  }
+}
+
+
+.twapModalWrapper {
+  max-width: 500px;
+}
+
+.twapModalHeader {
+  display: flex;
+  align-items: center;
+  margin-bottom: 30px;
+  svg {
+    margin-left: auto;
+  }
+}
+.twap-order-details__detail-row-value {
+  font-size: 14px;
+}
+.orbs_MainTokenLeft {
+  gap: 4px;
+}
+.orbs_MainTokenAmount {
+  font-size: 20px;
+}
+.twap-create-order-details {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.twap_limit_input {
+  & > div:first-child {
+    display: none;
+  }
+  & > div:last-child {
+    display: none;
+  }
+  padding: 0px;
+  border-radius: 0px;
+}
+
+.twap-panel {
+  background: #1f263d;
+  border-radius: 16px;
+  padding: 16px;
+  &-header {
+    margin-bottom: 10px;
+  }
+}
+
+.twap_to_input {
+  border-bottom-right-radius: 16px;
+  border-bottom-left-radius: 16px;
+}
+
+.twap-limit-price-panel {
+  border-bottom-left-radius: 0px;
+  border-bottom-right-radius: 0px;
+  margin-bottom: 2px;
+}
+.twap-limit-price-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin-bottom: 10px;
+  &-title {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    p {
+      font-size: 13px;
+      color: white;
+    }
+  }
+}
+.twap-limit-price-panel-percent {
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
+  gap: 5px;
+  align-items: stretch;
+}
+
+.twap-select-button {
+  border-radius: 5px;
+  border: solid 1px #448aff;
+  padding: 0px 4px;
+  height: 20px;
+  line-height: 1.2;
+  cursor: pointer;
+  font-size: 10px;
+  color: #448aff;
+
+  * {
+    font-size: 10px;
+  }
+  &:hover {
+    background: #448aff;
+    color: #fff;
+  }
+}
+
+.twap-select-button-selected {
+  background: #448aff;
+  color: #fff;
+}
+
+.twap-limit-price-panel-percent-reset {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  &-icon {
+    border-top-left-radius: 0px;
+    border-bottom-left-radius: 0px;
+  }
+  &-button {
+    border-top-right-radius: 0px;
+    border-bottom-right-radius: 0px;
+  }
+}
+
+.twap-inputs {
+  display: flex;
+  align-items: stretch;
+  gap: 5px;
+  margin-top: 3px;
+  .twap-panel {
+    flex: 1;
+  }
+}
+
+.twap-label {
+  p {
+    font-size: 13px;
+    color: white;
+  }
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+.twap-trades-amount-panel-text {
+  font-size: 13px;
+}
+
+.twap-inputs{
+  .MuiButton-text {
+    padding: 2px;
+  }
+}
+.twap-price-switch  {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-bottom: 10px;
+  p {
+    font-size: 14px;
+  }
+}
+
+.twap-warning-message {
+  margin-top: 10px;
+  background: #1e263d;
+  border-radius: 16px;
+  padding: 14px;
+  p {
+    font-size: 14px;
+    font-weight: 300;
+  }
+  svg { 
+    width: 16px;
+    height: 16px;
+    position: relative;
+    top: 3px;
+  }
+}
+
+.twap-orders__button  {
+  background: #1e263d;
+  border-radius: 16px;
+  padding: 0px 14px;
+  height: 46px;
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  cursor: pointer;
+  svg {
+    margin-left: auto;
+  }
+  span {
+    font-size: 14px;
+    
+  }
+  .twap-spinner {
+    margin-right: 10px;
+  }
+}

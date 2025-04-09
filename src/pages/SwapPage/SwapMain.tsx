@@ -22,7 +22,7 @@ import { useUserSlippageTolerance } from 'state/user/hooks';
 import '../styles/swap-main.scss';
 import AlgebraLogo from 'assets/images/algebra-logo.png';
 
-const SwapTwap = lazy(() => import('components/Swap/orbs/Twap/Twap'));
+const SwapTwap = lazy(() => import('components/Swap/orbs/Twap/Twap2'));
 
 const SwapV3Page = lazy(() => import('./V3/Swap'));
 const Swap = lazy(() =>

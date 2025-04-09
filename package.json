@@ -58,7 +58,7 @@
   },
   "scripts": {
     "analyze": "source-map-explorer 'build/static/js/*.js'",
-    "start": "react-app-rewired start --max-old-space-size=7168",
+    "start": "react-app-rewired start --max-old-space-size=7168 --force",
     "start-legacy": "react-app-rewired --openssl-legacy-provider start",
     "build": "GENERATE_SOURCEMAP=false CI=false react-app-rewired build --max-old-space-size=7168",
     "test": "react-app-rewired test --env=jsdom",
@@ -101,6 +101,7 @@
     "@orbs-network/liquidity-hub-sdk": "^1.0.47",
     "@orbs-network/swap-ui": "^0.0.14",
     "@orbs-network/twap-sdk": "^2.0.33",
+    "@orbs-network/twap-ui": "^3.0.96",
     "@orderly.network/hooks": "^1.4.3",
     "@orderly.network/react": "^1.4.3",
     "@orderly.network/types": "^1.4.3",
